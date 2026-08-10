@@ -17,7 +17,7 @@ The same repo also works as a Claude Code plugin (via `.claude-plugin/plugin.jso
 
 It additionally works as a **Codex plugin** (via `.codex-plugin/plugin.json` + `.codex-plugin/mcp.json`, distributed through `.agents/plugins/marketplace.json` — the repo is its own marketplace, added with `codex plugin marketplace add chainbase-labs/agentkey`). Codex plugins have no `userConfig`/header-interpolation mechanism, so auth uses MCP OAuth instead: the server's `/v1/mcp` endpoint advertises `WWW-Authenticate: Bearer resource_metadata=…` (RFC 9728) and supports dynamic client registration, so `.codex-plugin/mcp.json` needs only `type` + `url` — discovery does the rest. In that mode the OAuth sign-in substitutes for step 2.
 
-It also works as a **Cursor plugin** (`.cursor-plugin/plugin.json`). The Cursor-native manifest bundles `skills/` and an inline remote-HTTP MCP entry. Cursor authenticates through the server's MCP OAuth discovery, substituting for step 2.
+It also works as a **Cursor plugin** (`.cursor-plugin/plugin.json`) and **Cursor Team Marketplace** (`.cursor-plugin/marketplace.json`). The marketplace entry uses an external GitHub source pointing back to this repository, while the plugin manifest bundles `skills/` and an inline remote-HTTP MCP entry. Cursor authenticates through the server's MCP OAuth discovery, substituting for step 2.
 
 It also works as a **Kimi Code plugin** (`.kimi-plugin/plugin.json`). Kimi requires `mcpServers` to be an inline object in the manifest. The remote AgentKey endpoint uses Kimi's native MCP OAuth flow; after install Kimi shows the standard `/reload` hint, then the user signs in with `/mcp-config login plugin-agentkey:agentkey` when Kimi reports that OAuth is required.
 
@@ -34,6 +34,7 @@ agentkey/
 │   ├── plugin.json              # Codex plugin manifest (skills + mcpServers + interface metadata)
 │   └── mcp.json                 # Codex MCP entry — http + oauth_resource (NOT the root .mcp.json)
 ├── .cursor-plugin/
+│   ├── marketplace.json         # Cursor Team Marketplace entry — external GitHub source
 │   └── plugin.json              # Cursor manifest with skills + inline HTTP MCP entry (OAuth)
 ├── .kimi-plugin/
 │   └── plugin.json              # Kimi Code manifest with inline HTTP MCP entry (OAuth)
@@ -98,7 +99,8 @@ Releases are driven by [release-please](https://github.com/googleapis/release-pl
 - Use only fields documented by the Cursor plugin reference. Do not copy Codex/Kimi-only metadata such as `interface` into this manifest.
 - Keep `skills` pointed at `./skills/` and `mcpServers` as the minimal inline `{"agentkey":{"url":"https://api.agentkey.app/v1/mcp"}}` entry. Do not add static credentials or `${user_config.*}` interpolation; Cursor handles MCP OAuth itself.
 - Keep the endpoint URL in sync with the root `.mcp.json`, `.codex-plugin/mcp.json`, `.kimi-plugin/plugin.json`, and `gemini-extension.json`.
-- This repository is a single Cursor plugin, so `.cursor-plugin/marketplace.json` is not required. Submit the public repository URL through Cursor's marketplace publisher.
+- Keep `.cursor-plugin/marketplace.json` for Cursor Team Marketplace imports. Its single entry MUST use the external GitHub source object `{"source":"github","repo":"chainbase-labs/Agentkey"}`; do not change it to the local root source `"./"`, which can produce an empty remote Team Marketplace index even though local source loading succeeds.
+- The external marketplace source intentionally points back to this repository so the root plugin and shared `skills/` remain the single source of truth. Do not duplicate the plugin under a `plugins/` directory.
 
 **Changes to `.kimi-plugin/plugin.json`:**
 - `mcpServers` MUST be an inline object. Kimi does not accept a path such as `"./mcp.json"` for this field.

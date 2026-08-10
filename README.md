@@ -382,7 +382,9 @@ If you previously worked around an older AgentKey plugin by adding a user-global
 
 **Cursor plugin mode** — install AgentKey from the Cursor Marketplace after the listing is published. The Cursor-native manifest at `.cursor-plugin/plugin.json` bundles the same Skill and an inline remote-HTTP MCP entry, so there is **no API key to paste and no second `@agentkey/cli` step**. When Cursor prompts for MCP authentication, approve the AgentKey browser sign-in.
 
-For maintainers, push the plugin to a public Git repository and submit the repository URL at [cursor.com/marketplace/publish](https://cursor.com/marketplace/publish). Before submitting, test the plugin in the current Cursor release and confirm that both the `agentkey` Skill and MCP server load successfully after OAuth. The manifest follows the [Cursor plugin reference](https://cursor.com/docs/reference/plugins); keep its component paths relative to the plugin root.
+For a Cursor Team Marketplace, import this repository URL directly. `.cursor-plugin/marketplace.json` exposes AgentKey through a GitHub source object that points back to this repository; keep that external source instead of replacing it with `"./"`. A root-relative source works with Cursor's local source loader but can produce an empty result when the Team Marketplace indexes the repository remotely. After updating the default branch, refresh the marketplace in Cursor Settings.
+
+For the public Cursor Marketplace, submit the public repository URL at [cursor.com/marketplace/publish](https://cursor.com/marketplace/publish). Before submitting, test the plugin in the current Cursor release and confirm that both the `agentkey` Skill and MCP server load successfully after OAuth. Both manifests follow the [Cursor plugin reference](https://cursor.com/docs/reference/plugins); keep plugin component paths relative to the plugin root.
 
 **Gemini CLI extension mode** — install the repository as an extension. The root `gemini-extension.json` bundles the existing AgentKey skill and the remote Streamable HTTP MCP server, so there is **no API key to paste and no second `@agentkey/cli` step**:
 
@@ -426,6 +428,7 @@ agentkey/
 │   ├── plugin.json              # Codex plugin manifest
 │   └── mcp.json                 # Codex MCP entry (OAuth, no user_config)
 ├── .cursor-plugin/
+│   ├── marketplace.json         # Cursor Team Marketplace entry (external GitHub source)
 │   └── plugin.json              # Cursor manifest with Skill + inline MCP OAuth
 ├── .kimi-plugin/
 │   └── plugin.json              # Kimi manifest with inline MCP OAuth entry
