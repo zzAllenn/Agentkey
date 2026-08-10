@@ -31,6 +31,11 @@
           "jsonpath": "$.version"
         },
         {
+          "type": "json",
+          "path": "gemini-extension.json",
+          "jsonpath": "$.version"
+        },
+        {
           "type": "generic",
           "path": "skills/agentkey/scripts/check-update.sh"
         },

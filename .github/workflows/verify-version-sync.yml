@@ -15,6 +15,7 @@ on:
       - '.codex-plugin/plugin.json'
       - '.cursor-plugin/plugin.json'
       - '.kimi-plugin/plugin.json'
+      - 'gemini-extension.json'
       - 'release-please-config.json'
   pull_request:
     paths:
@@ -25,6 +26,7 @@ on:
       - '.codex-plugin/plugin.json'
       - '.cursor-plugin/plugin.json'
       - '.kimi-plugin/plugin.json'
+      - 'gemini-extension.json'
       - 'release-please-config.json'
 
 jobs:
@@ -42,6 +44,7 @@ jobs:
           codex_plugin=$(python3 -c 'import json; print(json.load(open(".codex-plugin/plugin.json"))["version"])')
           cursor_plugin=$(python3 -c 'import json; print(json.load(open(".cursor-plugin/plugin.json"))["version"])')
           kimi_plugin=$(python3 -c 'import json; print(json.load(open(".kimi-plugin/plugin.json"))["version"])')
+          gemini_extension=$(python3 -c 'import json; print(json.load(open("gemini-extension.json"))["version"])')
           skill=$(awk '/^---/{c++; next} c==1 && /^version:/{print $2; exit}' skills/agentkey/SKILL.md)
           echo "version.txt:        $canonical"
           echo "check-update.sh:    $script"
@@ -49,13 +52,15 @@ jobs:
           echo "Codex plugin:       $codex_plugin"
           echo "Cursor plugin:      $cursor_plugin"
           echo "Kimi plugin:        $kimi_plugin"
+          echo "Gemini extension:   $gemini_extension"
           echo "SKILL.md:           $skill"
           if [ "$canonical" != "$script" ] \
              || [ "$canonical" != "$claude_plugin" ] \
              || [ "$canonical" != "$codex_plugin" ] \
              || [ "$canonical" != "$cursor_plugin" ] \
              || [ "$canonical" != "$kimi_plugin" ] \
+             || [ "$canonical" != "$gemini_extension" ] \
              || [ "$canonical" != "$skill" ]; then
-            echo "::error::Version drift detected. release-please syncs all seven values from version.txt — re-run release-please or restore the values manually."
+            echo "::error::Version drift detected. release-please syncs all eight values from version.txt — re-run release-please or restore the values manually."
             exit 1
           fi

@@ -384,6 +384,18 @@ If you previously worked around an older AgentKey plugin by adding a user-global
 
 For maintainers, push the plugin to a public Git repository and submit the repository URL at [cursor.com/marketplace/publish](https://cursor.com/marketplace/publish). Before submitting, test the plugin in the current Cursor release and confirm that both the `agentkey` Skill and MCP server load successfully after OAuth. The manifest follows the [Cursor plugin reference](https://cursor.com/docs/reference/plugins); keep its component paths relative to the plugin root.
 
+**Gemini CLI extension mode** — install the repository as an extension. The root `gemini-extension.json` bundles the existing AgentKey skill and the remote Streamable HTTP MCP server, so there is **no API key to paste and no second `@agentkey/cli` step**:
+
+```bash
+# Public install
+gemini extensions install https://github.com/chainbase-labs/agentkey
+
+# Or link a local checkout for development
+gemini extensions link /absolute/path/to/agentkey
+```
+
+Restart Gemini CLI after installing or linking. If the MCP server requires authentication, run `/mcp auth agentkey` and approve the browser authorization; Gemini then stores and refreshes the OAuth tokens. Use `/mcp reload` after changing the server configuration.
+
 **Repo layout:**
 
 ```
@@ -398,6 +410,7 @@ agentkey/
 │   └── plugin.json              # Kimi manifest with inline MCP OAuth entry
 ├── .agents/plugins/marketplace.json  # Codex marketplace (this repo is its own marketplace)
 ├── .mcp.json                    # Used when installed as a Claude Code plugin
+├── gemini-extension.json        # Gemini CLI extension manifest (MCP OAuth + skills)
 ├── skills/agentkey/
 │   ├── SKILL.md                 # Decision tree + routing rules
 │   ├── scripts/                 # check-update helper
@@ -409,7 +422,7 @@ agentkey/
     └── uninstall.ps1            # Windows PowerShell uninstaller
 ```
 
-**Release a new version (maintainers):** releases are cut automatically by [release-please](https://github.com/googleapis/release-please). Merging a PR with a `feat:` or `fix:` title opens a Release PR that bumps `skills/agentkey/version.txt`, all four plugin manifests, and `CHANGELOG.md`. Merging the Release PR creates the tag + GitHub Release + uploads the `agentkey.skill` asset.
+**Release a new version (maintainers):** releases are cut automatically by [release-please](https://github.com/googleapis/release-please). Merging a PR with a `feat:` or `fix:` title opens a Release PR that bumps `skills/agentkey/version.txt`, all four plugin manifests, `gemini-extension.json`, and `CHANGELOG.md`. Merging the Release PR creates the tag + GitHub Release + uploads the `agentkey.skill` asset.
 
 </details>
 
