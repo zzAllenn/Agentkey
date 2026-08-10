@@ -382,7 +382,9 @@ Kimi 会把本地插件复制到自己的托管目录。修改原 checkout 后�
 
 **Cursor 插件模式** —— 插件上架后，从 Cursor Marketplace 安装 AgentKey。`.cursor-plugin/plugin.json` 这个 Cursor 原生清单会同时捆绑同一个 Skill 和内联的远程 HTTP MCP 配置，因此**不用粘贴 API Key，也不需要再单独运行 `@agentkey/cli`**。Cursor 提示 MCP 需要认证时，在浏览器完成 AgentKey 登录即可。
 
-维护者需要先把插件推送到公开 Git 仓库，再到 [cursor.com/marketplace/publish](https://cursor.com/marketplace/publish) 提交仓库地址。提交前请使用当前版本 Cursor 实际安装测试，确认 OAuth 完成后 `agentkey` Skill 和 MCP server 都能正常加载。清单遵循 [Cursor 插件参考](https://cursor.com/cn/docs/reference/plugins)，其中所有组件路径都必须相对于插件根目录。
+如果使用 Cursor Team Marketplace，直接导入本仓库地址即可。`.cursor-plugin/marketplace.json` 通过指回本仓库的 GitHub source object 暴露 AgentKey；请保留此外部 source，不要改成 `"./"`。根目录相对 source 虽然能被 Cursor 本地源码加载器识别，但 Team Marketplace 远端索引仓库时可能返回空列表。默认分支更新后，请在 Cursor Settings 中刷新 marketplace。
+
+如果发布到公开 Cursor Marketplace，请到 [cursor.com/marketplace/publish](https://cursor.com/marketplace/publish) 提交公开仓库地址。提交前请使用当前版本 Cursor 实际安装测试，确认 OAuth 完成后 `agentkey` Skill 和 MCP server 都能正常加载。两个清单均遵循 [Cursor 插件参考](https://cursor.com/cn/docs/reference/plugins)，插件的组件路径必须相对于插件根目录。
 
 **Gemini CLI 扩展模式** —— 把本仓库直接安装为 extension。根目录的 `gemini-extension.json` 会捆绑现有 AgentKey skill 和远程 Streamable HTTP MCP server，**不用粘贴 API Key，也不需要再单独跑 `@agentkey/cli`**：
 
@@ -426,6 +428,7 @@ agentkey/
 │   ├── plugin.json              # Codex 插件清单
 │   └── mcp.json                 # Codex MCP 配置（OAuth，无 user_config）
 ├── .cursor-plugin/
+│   ├── marketplace.json         # Cursor Team Marketplace 条目（外部 GitHub source）
 │   └── plugin.json              # Cursor 清单，捆绑 Skill 与内联 MCP OAuth
 ├── .kimi-plugin/
 │   └── plugin.json              # Kimi 清单，内联 MCP OAuth 配置
