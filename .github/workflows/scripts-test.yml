@@ -3,17 +3,25 @@ on:
   push:
     paths:
       - 'skills/agentkey/scripts/**'
+      - 'skills/agentkey/SKILL.md'
+      - 'skills/agentkey/references/setup.md'
       - 'gemini-extension.json'
       - 'plugin.json'
       - 'mcp_config.json'
+      - 'README.md'
+      - 'docs/README_zh.md'
       - 'tests/**'
       - '.github/workflows/scripts-test.yml'
   pull_request:
     paths:
       - 'skills/agentkey/scripts/**'
+      - 'skills/agentkey/SKILL.md'
+      - 'skills/agentkey/references/setup.md'
       - 'gemini-extension.json'
       - 'plugin.json'
       - 'mcp_config.json'
+      - 'README.md'
+      - 'docs/README_zh.md'
       - 'tests/**'
 
 jobs:
