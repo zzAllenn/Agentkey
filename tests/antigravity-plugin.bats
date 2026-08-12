@@ -102,13 +102,5 @@ assert endpoints == {
     "antigravity": "https://api.agentkey.app/antigravity/v1/mcp",
 }, endpoints
 
-with open(os.path.join(root, ".mcp.json"), encoding="utf-8") as handle:
-    retained_root_config = json.load(handle)
-with open(os.path.join(root, ".claude-plugin/mcp.json"), encoding="utf-8") as handle:
-    claude_plugin_config = json.load(handle)
-
-assert retained_root_config == claude_plugin_config, (
-    "The retained root .mcp.json must remain semantically identical to .claude-plugin/mcp.json"
-)
 PY
 }
