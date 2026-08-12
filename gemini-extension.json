@@ -1,10 +1,10 @@
 {
   "name": "agentkey",
   "version": "1.13.1",
-  "description": "AgentKey gives Gemini CLI one-stop access to live web, social, finance, crypto, e-commerce, business, weather, maps, and travel data.",
+  "description": "AgentKey gives Gemini CLI one-stop access to live-data tools across web search (Brave Search, Tavily, Serper, Perplexity, Parallel, Exa), web scraping (Jina Reader, Firecrawl, Bright Data), social and media (Instagram, YouTube, Reddit, Bilibili/哔哩哔哩, Douyin/抖音, LinkedIn, Zhihu/知乎, TikTok, Weibo/微博, WeChat/微信, Threads, Twitter / X, Xiaohongshu/小红书, Kuaishou/快手, Lemon8, Pipixia/皮皮虾, Toutiao/今日头条, Xigua Video/西瓜视频, Douban/豆瓣, Youku/优酷, Facebook, IMDb), finance (Tushare, Yahoo Finance, Finnhub, Alpha Vantage), crypto and on-chain (Market Data, CEX & Derivatives, DEX Pools, Token Analytics, NFTs, Wallets, Chain Primitives, Naming Services, Crypto News, Industry Events, Social Intelligence, Prediction Markets, Projects & Funds, Crypto Search), e-commerce (Taobao/淘宝, JD.com/京东, Amazon, 1688, Douyin E-commerce/抖音电商, TikTok Shop, Dewu/得物, Xianyu/闲鱼), business intelligence (Crunchbase, RootData), weather and location lookup (QWeather/和风天气), and travel (Booking.com).",
   "mcpServers": {
     "agentkey": {
-      "httpUrl": "https://api.agentkey.app/v1/mcp",
+      "httpUrl": "https://api.agentkey.app/gemini/v1/mcp",
       "oauth": {
         "enabled": true
       }

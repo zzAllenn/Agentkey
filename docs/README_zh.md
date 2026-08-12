@@ -141,7 +141,7 @@ AgentKey 采用订阅制。每档套餐包含每月的 credits 额度，超出�
 
 AgentKey 有两部分，更新方式不同：
 
-- **MCP server**：真正的服务端在 `https://api.agentkey.app/v1/mcp`，永远自动最新，不需要本地升级。`@agentkey/cli` 包（`npx -y @agentkey/cli --auth-login`）只负责把远程 HTTP MCP 配置写入各个 AI client，除非要换 API Key，否则不用再跑。
+- **MCP server**：真正的服务端托管在 `https://api.agentkey.app`，永远自动最新，不需要本地升级。`@agentkey/cli` 包（`npx -y @agentkey/cli --auth-login`）只负责把远程 HTTP MCP 配置写入各个 AI client：有专属路由的 client 使用带来源前缀的地址，其余 client 回退到通用 `/v1/mcp`；除非要换 API Key，否则不用再跑。
 
 - **Skill 文件**（`SKILL.md` 加辅助脚本）：升级方式取决于你用的 client。
 
@@ -301,7 +301,18 @@ npx -y @agentkey/cli --auth-login
 <details>
 <summary><b>我的 Agent 没被自动配置，怎么手动设置？</b></summary>
 
-MCP 自动配置覆盖 **Claude Code**、**Claude Desktop**、**Cursor**。如果你用的是 **Codex / OpenCode / Gemini CLI / Hermes / Manus**（或 Linux 版 Claude Desktop），Skill 会正常装上，但你需要把下面这段 MCP 片段手动贴到该 Agent 的配置里（路径因 Agent 而异）：
+`@agentkey/cli --auth-login` 会自动配置它支持的 client。如果没有检测到 client，或者某个配置写入失败，CLI 会为每个受影响的 client 打印可直接粘贴的 fallback 配置。地址映射如下：
+
+| Client | MCP 地址 |
+|---|---|
+| Claude Code / Claude Desktop | `https://api.agentkey.app/claude/v1/mcp` |
+| Cursor | `https://api.agentkey.app/cursor/v1/mcp` |
+| Codex | `https://api.agentkey.app/codex/v1/mcp` |
+| Gemini CLI | `https://api.agentkey.app/gemini/v1/mcp` |
+| Kimi CLI | `https://api.agentkey.app/kimi/v1/mcp` |
+| 其他 client | `https://api.agentkey.app/v1/mcp` |
+
+仍需手工配置的 client，请把匹配的 URL 贴进它自己的配置文件（路径因 client 而异）。无法判断 client 时，通用 fallback 仍然有效：
 
 ```json
 {
@@ -339,7 +350,7 @@ npx -y @agentkey/cli --auth-login
 
 **想改 MCP Server 本身？** MCP server 在 `AgentKey-Server/`（Go），端点是 `/v1/mcp`。本地起服务（`make run`），把 MCP 配置指向 `http://localhost:8081/v1/mcp` 就能端到端验证。
 
-**Claude Code 插件模式** —— 直接从 marketplace 安装。插件启用时会提示你填 AgentKey API Key 并自动接好 MCP server，**不需要再单独跑 `@agentkey/cli`**：
+**Claude Code 插件模式** —— 直接从 marketplace 安装。插件启用时会提示你填 AgentKey API Key，并自动接入 `https://api.agentkey.app/claude/v1/mcp`，**不需要再单独跑 `@agentkey/cli`**：
 
 ```bash
 # 公开安装
@@ -351,7 +362,7 @@ claude plugin marketplace add /absolute/path/to/agentkey
 claude plugin install agentkey@agentkey
 ```
 
-启用时 Claude Code 会提示填 `AGENTKEY_API_KEY`（存进系统钥匙串），并通过 `${user_config.AGENTKEY_API_KEY}` 注入插件的 `.mcp.json`。改了本地 checkout 后用 `claude plugin update agentkey` 重新加载。日常 Skill 迭代仍是 skills CLI 最快；插件路径是给 Claude Code 用户的一步到位选项。
+启用时 Claude Code 会提示填 `AGENTKEY_API_KEY`（存进系统钥匙串），并通过 `${user_config.AGENTKEY_API_KEY}` 注入插件的 `.claude-plugin/mcp.json`。改了本地 checkout 后用 `claude plugin update agentkey` 重新加载。日常 Skill 迭代仍是 skills CLI 最快；插件路径是给 Claude Code 用户的一步到位选项。根目录 `.mcp.json` 暂时作为内容完全相同的兼容副本保留，但 Claude 插件清单已不再引用它。
 
 **Codex 插件模式** —— 从本仓库自带的 marketplace 安装。认证走 OAuth（安装时浏览器登录），**不用粘贴 API Key，也不需要再单独跑 `@agentkey/cli`**：
 
@@ -362,9 +373,9 @@ codex plugin marketplace add chainbase-labs/agentkey
 # 或者：codex plugin install agentkey@agentkey
 ```
 
-插件清单在 `.codex-plugin/plugin.json`；它捆绑了同一个 Skill，外加一条远程 HTTP MCP 配置（`.codex-plugin/mcp.json`），通过 MCP OAuth（RFC 9728 自动发现）对 `https://api.agentkey.app/v1/mcp` 做认证。Codex 提示时用你的 AgentKey 账号登录即可。
+插件清单在 `.codex-plugin/plugin.json`；它捆绑了同一个 Skill，外加一条远程 HTTP MCP 配置（`.codex-plugin/mcp.json`），通过 MCP OAuth（RFC 9728 自动发现）对 `https://api.agentkey.app/codex/v1/mcp` 做认证。Codex 提示时用你的 AgentKey 账号登录即可。
 
-**Kimi Code 插件模式** —— 直接在 Kimi Code 中安装本仓库。插件清单同时捆绑 Skill 和内联的远程 HTTP MCP 配置，**不用粘贴 API Key，也不需要再单独跑 `@agentkey/cli`**：
+**Kimi Code 插件模式** —— 直接在 Kimi Code 中安装本仓库。插件清单同时捆绑 Skill 和指向 `https://api.agentkey.app/kimi/v1/mcp` 的内联远程 HTTP MCP 配置，**不用粘贴 API Key，也不需要再单独跑 `@agentkey/cli`**：
 
 ```text
 # 公开安装
@@ -380,11 +391,11 @@ Kimi 会把本地插件复制到自己的托管目录。修改原 checkout 后�
 
 如果你曾为旧版 AgentKey plugin 手工通过 `/mcp-config` 添加过用户全局的 `agentkey` 条目，请在 reload 前执行一次 `/mcp-config remove agentkey` 删除旧条目。现在 plugin 会维护自己的命名空间 MCP；同时保留两份会造成工具和鉴权流程重复。
 
-**Cursor 插件模式** —— 插件上架后，从 Cursor Marketplace 安装 AgentKey。`.cursor-plugin/plugin.json` 这个 Cursor 原生清单会同时捆绑同一个 Skill 和内联的远程 HTTP MCP 配置，因此**不用粘贴 API Key，也不需要再单独运行 `@agentkey/cli`**。Cursor 提示 MCP 需要认证时，在浏览器完成 AgentKey 登录即可。
+**Cursor 插件模式** —— 插件上架后，从 Cursor Marketplace 安装 AgentKey。`.cursor-plugin/plugin.json` 这个 Cursor 原生清单会同时捆绑同一个 Skill 和指向 `https://api.agentkey.app/cursor/v1/mcp` 的内联远程 HTTP MCP 配置，因此**不用粘贴 API Key，也不需要再单独运行 `@agentkey/cli`**。Cursor 提示 MCP 需要认证时，在浏览器完成 AgentKey 登录即可。
 
 维护者需要先把插件推送到公开 Git 仓库，再到 [cursor.com/marketplace/publish](https://cursor.com/marketplace/publish) 提交仓库地址。提交前请使用当前版本 Cursor 实际安装测试，确认 OAuth 完成后 `agentkey` Skill 和 MCP server 都能正常加载。清单遵循 [Cursor 插件参考](https://cursor.com/cn/docs/reference/plugins)，其中所有组件路径都必须相对于插件根目录。
 
-**Gemini CLI 扩展模式** —— 把本仓库直接安装为 extension。根目录的 `gemini-extension.json` 会捆绑现有 AgentKey skill 和远程 Streamable HTTP MCP server，**不用粘贴 API Key，也不需要再单独跑 `@agentkey/cli`**：
+**Gemini CLI 扩展模式** —— 把本仓库直接安装为 extension。根目录的 `gemini-extension.json` 会捆绑现有 AgentKey skill 和指向 `https://api.agentkey.app/gemini/v1/mcp` 的远程 Streamable HTTP MCP server，**不用粘贴 API Key，也不需要再单独跑 `@agentkey/cli`**：
 
 ```bash
 # 公开安装
@@ -398,7 +409,7 @@ gemini extensions link /absolute/path/to/agentkey
 
 如果 Gemini 提示 `~/.agents/skills/agentkey` 覆盖了 extension 捆绑的 Skill，这是独立的 Skill 优先级告警，不是 OAuth 失败。之前安装的用户级 Skill 优先级更高；当两份版本一致时可以安全保留，尤其是其他 Agent 也依赖这个共享目录时。只有确认其他 Agent 不再需要它之后，才执行 `gemini skills uninstall agentkey --scope user`，再运行 `/skills reload`。
 
-**Antigravity 2.0 / Antigravity CLI 插件模式** —— 两个运行时共用根目录的 `plugin.json`、`mcp_config.json` 和现有 `skills/`。MCP 配置使用 Antigravity 规定的 `serverUrl`，并通过动态客户端注册自动发现 OAuth，**不用粘贴 API Key、不用配置 OAuth client secret，也不需要再单独运行 `@agentkey/cli`**。
+**Antigravity 2.0 / Antigravity CLI 插件模式** —— 两个运行时共用根目录的 `plugin.json`、`mcp_config.json` 和现有 `skills/`。MCP 配置指向 `https://api.agentkey.app/antigravity/v1/mcp`，使用 Antigravity 规定的 `serverUrl`，并通过动态客户端注册自动发现 OAuth，**不用粘贴 API Key、不用配置 OAuth client secret，也不需要再单独运行 `@agentkey/cli`**。
 
 Antigravity 2.0 可按 workspace 或全局范围放置插件，完成后重启 Antigravity：
 
@@ -428,7 +439,9 @@ Antigravity 发现插件后，应认证插件捆绑的 MCP 配置，不要重复
 
 ```
 agentkey/
-├── .claude-plugin/plugin.json   # Claude Code 插件清单
+├── .claude-plugin/
+│   ├── plugin.json              # Claude Code 插件清单
+│   └── mcp.json                 # Claude MCP 配置（API Key userConfig）
 ├── .codex-plugin/
 │   ├── plugin.json              # Codex 插件清单
 │   └── mcp.json                 # Codex MCP 配置（OAuth，无 user_config）
@@ -437,7 +450,7 @@ agentkey/
 ├── .kimi-plugin/
 │   └── plugin.json              # Kimi 清单，内联 MCP OAuth 配置
 ├── .agents/plugins/marketplace.json  # Codex marketplace（本仓库即自己的 marketplace）
-├── .mcp.json                    # 作为 Claude Code 插件安装时使用
+├── .mcp.json                    # 暂留的兼容镜像；插件清单不再引用
 ├── gemini-extension.json        # Gemini CLI 扩展清单（MCP OAuth + skills）
 ├── plugin.json                  # Antigravity 桌面端/CLI 插件清单
 ├── mcp_config.json              # Antigravity 远程 MCP 配置（serverUrl + OAuth）
