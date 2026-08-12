@@ -141,7 +141,7 @@ AgentKey is subscription-based. Each plan includes a monthly credit allowance; u
 
 There are two pieces and they update differently:
 
-- **MCP server**: the real server is hosted at `https://api.agentkey.app/v1/mcp`, so it's always up to date — no local upgrade step. The `@agentkey/cli` package (run as `npx -y @agentkey/cli --auth-login`) only writes the remote-HTTP MCP config into each AI client and never has to be re-run unless you want to rotate your key.
+- **MCP server**: the real server is hosted under `https://api.agentkey.app`, so it's always up to date — no local upgrade step. The `@agentkey/cli` package (run as `npx -y @agentkey/cli --auth-login`) only writes the remote-HTTP MCP config into each AI client. It uses a client-attributed route where one exists and falls back to the generic `/v1/mcp` route for other clients; it never has to be re-run unless you want to rotate your key.
 
 - **Skill files** (`SKILL.md` + helpers): how this updates depends on your client.
 
@@ -301,7 +301,18 @@ npx -y @agentkey/cli --auth-login
 <details>
 <summary><b>My agent isn't on the auto-configured list — how do I set it up manually?</b></summary>
 
-MCP auto-configuration covers **Claude Code**, **Claude Desktop**, and **Cursor**. For **Codex / OpenCode / Gemini CLI / Hermes / Manus** (or Linux Claude Desktop), the skill still installs automatically — but you'll need to paste this MCP snippet into the agent's own config (path varies per agent):
+`@agentkey/cli --auth-login` auto-configures its supported clients. If no client is detected or a writer fails, the CLI prints a paste-ready fallback for every affected client. It uses these endpoints:
+
+| Client | MCP endpoint |
+|---|---|
+| Claude Code / Claude Desktop | `https://api.agentkey.app/claude/v1/mcp` |
+| Cursor | `https://api.agentkey.app/cursor/v1/mcp` |
+| Codex | `https://api.agentkey.app/codex/v1/mcp` |
+| Gemini CLI | `https://api.agentkey.app/gemini/v1/mcp` |
+| Kimi CLI | `https://api.agentkey.app/kimi/v1/mcp` |
+| Other clients | `https://api.agentkey.app/v1/mcp` |
+
+For a client that still needs manual setup, paste the matching URL into its config (path varies per client). The generic fallback remains valid when the client is unknown:
 
 ```json
 {
@@ -339,7 +350,7 @@ npx -y @agentkey/cli --auth-login
 
 **Iterating on the MCP server itself?** The server lives at `AgentKey-Server/` (Go) and exposes the MCP endpoint at `/v1/mcp`. Run a local server (`make run`) and point your MCP config at `http://localhost:8081/v1/mcp` to test changes end-to-end.
 
-**Claude Code plugin mode** — install straight from the marketplace. The plugin prompts you for your AgentKey API key on enable and wires the MCP server for you, so there's **no second `@agentkey/cli` step**:
+**Claude Code plugin mode** — install straight from the marketplace. The plugin prompts you for your AgentKey API key on enable and wires the MCP server at `https://api.agentkey.app/claude/v1/mcp` for you, so there's **no second `@agentkey/cli` step**:
 
 ```bash
 # Public install
@@ -351,7 +362,7 @@ claude plugin marketplace add /absolute/path/to/agentkey
 claude plugin install agentkey@agentkey
 ```
 
-On enable, Claude Code prompts for `AGENTKEY_API_KEY` (stored in your OS keychain) and injects it into the plugin's `.mcp.json` via `${user_config.AGENTKEY_API_KEY}`. Reload a local checkout with `claude plugin update agentkey` after edits. Day-to-day skill iteration is still fastest via the skills-CLI path; the plugin path is the one-step option for Claude Code users.
+On enable, Claude Code prompts for `AGENTKEY_API_KEY` (stored in your OS keychain) and injects it into the plugin's `.claude-plugin/mcp.json` via `${user_config.AGENTKEY_API_KEY}`. Reload a local checkout with `claude plugin update agentkey` after edits. Day-to-day skill iteration is still fastest via the skills-CLI path; the plugin path is the one-step option for Claude Code users. The root `.mcp.json` is temporarily retained as an identical compatibility copy but is no longer referenced by the Claude plugin manifest.
 
 **Codex plugin mode** — install from the marketplace bundled in this repo. Auth is OAuth (browser sign-in on install), so there's **no API key to paste and no second `@agentkey/cli` step**:
 
@@ -362,9 +373,9 @@ codex plugin marketplace add chainbase-labs/agentkey
 # or: codex plugin install agentkey@agentkey
 ```
 
-The plugin manifest lives in `.codex-plugin/plugin.json`; it bundles the same skill plus a remote-HTTP MCP entry (`.codex-plugin/mcp.json`) that authenticates against `https://api.agentkey.app/v1/mcp` via MCP OAuth (RFC 9728 discovery). Sign in with your AgentKey account when Codex prompts you.
+The plugin manifest lives in `.codex-plugin/plugin.json`; it bundles the same skill plus a remote-HTTP MCP entry (`.codex-plugin/mcp.json`) that authenticates against `https://api.agentkey.app/codex/v1/mcp` via MCP OAuth (RFC 9728 discovery). Sign in with your AgentKey account when Codex prompts you.
 
-**Kimi Code plugin mode** — install the repo directly from Kimi Code. The manifest bundles the skill and an inline remote-HTTP MCP entry, so there is **no API key to paste and no second `@agentkey/cli` step**:
+**Kimi Code plugin mode** — install the repo directly from Kimi Code. The manifest bundles the skill and an inline remote-HTTP MCP entry at `https://api.agentkey.app/kimi/v1/mcp`, so there is **no API key to paste and no second `@agentkey/cli` step**:
 
 ```text
 # Public install
@@ -380,11 +391,11 @@ Kimi copies local plugins into its managed plugin directory. Re-run `/plugins in
 
 If you previously worked around an older AgentKey plugin by adding a user-global `agentkey` entry through `/mcp-config`, remove that old entry once with `/mcp-config remove agentkey` before reloading. The plugin now owns its namespaced MCP entry; keeping both would create duplicate tools and authentication attempts.
 
-**Cursor plugin mode** — install AgentKey from the Cursor Marketplace after the listing is published. The Cursor-native manifest at `.cursor-plugin/plugin.json` bundles the same Skill and an inline remote-HTTP MCP entry, so there is **no API key to paste and no second `@agentkey/cli` step**. When Cursor prompts for MCP authentication, approve the AgentKey browser sign-in.
+**Cursor plugin mode** — install AgentKey from the Cursor Marketplace after the listing is published. The Cursor-native manifest at `.cursor-plugin/plugin.json` bundles the same Skill and an inline remote-HTTP MCP entry at `https://api.agentkey.app/cursor/v1/mcp`, so there is **no API key to paste and no second `@agentkey/cli` step**. When Cursor prompts for MCP authentication, approve the AgentKey browser sign-in.
 
 For maintainers, push the plugin to a public Git repository and submit the repository URL at [cursor.com/marketplace/publish](https://cursor.com/marketplace/publish). Before submitting, test the plugin in the current Cursor release and confirm that both the `agentkey` Skill and MCP server load successfully after OAuth. The manifest follows the [Cursor plugin reference](https://cursor.com/docs/reference/plugins); keep its component paths relative to the plugin root.
 
-**Gemini CLI extension mode** — install the repository as an extension. The root `gemini-extension.json` bundles the existing AgentKey skill and the remote Streamable HTTP MCP server, so there is **no API key to paste and no second `@agentkey/cli` step**:
+**Gemini CLI extension mode** — install the repository as an extension. The root `gemini-extension.json` bundles the existing AgentKey skill and the remote Streamable HTTP MCP server at `https://api.agentkey.app/gemini/v1/mcp`, so there is **no API key to paste and no second `@agentkey/cli` step**:
 
 ```bash
 # Public install
@@ -398,7 +409,7 @@ Restart Gemini CLI after installing or linking. On the first connection, the ext
 
 If Gemini reports that `~/.agents/skills/agentkey` overrides the copy bundled by the extension, that is a separate Skill-precedence warning rather than an OAuth failure. A previously installed user Skill has higher priority and can safely remain when it is the same version—especially if other agents use that shared directory. Remove it with `gemini skills uninstall agentkey --scope user` only when it is no longer needed elsewhere, then run `/skills reload`.
 
-**Antigravity 2.0 / Antigravity CLI plugin mode** — both runtimes use the root `plugin.json`, `mcp_config.json`, and existing `skills/` directory. The MCP entry uses Antigravity's `serverUrl` schema and automatic OAuth discovery through dynamic client registration, so there is **no API key to paste, no OAuth client secret to configure, and no second `@agentkey/cli` step**.
+**Antigravity 2.0 / Antigravity CLI plugin mode** — both runtimes use the root `plugin.json`, `mcp_config.json`, and existing `skills/` directory. The MCP entry points to `https://api.agentkey.app/antigravity/v1/mcp`, uses Antigravity's `serverUrl` schema, and relies on automatic OAuth discovery through dynamic client registration, so there is **no API key to paste, no OAuth client secret to configure, and no second `@agentkey/cli` step**.
 
 For Antigravity 2.0, place the repository at workspace scope or global scope, then restart Antigravity:
 
@@ -428,7 +439,9 @@ Keep `mcp_config.json` free of static headers, access tokens, and OAuth client c
 
 ```
 agentkey/
-├── .claude-plugin/plugin.json   # Claude Code plugin manifest
+├── .claude-plugin/
+│   ├── plugin.json              # Claude Code plugin manifest
+│   └── mcp.json                 # Claude MCP entry (API-key userConfig)
 ├── .codex-plugin/
 │   ├── plugin.json              # Codex plugin manifest
 │   └── mcp.json                 # Codex MCP entry (OAuth, no user_config)
@@ -437,7 +450,7 @@ agentkey/
 ├── .kimi-plugin/
 │   └── plugin.json              # Kimi manifest with inline MCP OAuth entry
 ├── .agents/plugins/marketplace.json  # Codex marketplace (this repo is its own marketplace)
-├── .mcp.json                    # Used when installed as a Claude Code plugin
+├── .mcp.json                    # Retained compatibility mirror; not referenced by a plugin manifest
 ├── gemini-extension.json        # Gemini CLI extension manifest (MCP OAuth + skills)
 ├── plugin.json                  # Antigravity desktop/CLI plugin manifest
 ├── mcp_config.json              # Antigravity remote MCP entry (serverUrl + OAuth)
