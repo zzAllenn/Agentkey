@@ -15,7 +15,7 @@ The skill is useless without the MCP server; the MCP server works without the sk
 
 The same repo also works as:
 
-- a **Claude Code plugin** (`.claude-plugin/plugin.json` + `.claude-plugin/mcp.json`) — the plugin's `userConfig` injects the API key via `${user_config.AGENTKEY_API_KEY}`, substituting for step 2. The root `.mcp.json` is temporarily retained only as an identical compatibility mirror.
+- a **Claude Code plugin** (`.claude-plugin/plugin.json` + `.claude-plugin/mcp.json`) — the plugin's `userConfig` injects the API key via `${user_config.AGENTKEY_API_KEY}`, substituting for step 2. The root `.mcp.json` remains an independent generic compatibility config.
 - a **Codex plugin** (`.codex-plugin/plugin.json` + `.codex-plugin/mcp.json`, distributed through `.agents/plugins/marketplace.json`; the repo is its own marketplace: `codex plugin marketplace add chainbase-labs/agentkey`). Codex plugins have no `userConfig`/header-interpolation mechanism, so auth uses MCP OAuth via the server's RFC 9728 metadata discovery (`type` + `url` only in mcp.json), substituting for step 2.
 - a **Cursor plugin** (`.cursor-plugin/plugin.json`). The Cursor-native manifest bundles `skills/` and an inline remote-HTTP MCP entry. Cursor authenticates through the server's MCP OAuth discovery, substituting for step 2.
 - a **Kimi Code plugin** (`.kimi-plugin/plugin.json`). Kimi requires `mcpServers` to be an inline object in the manifest. The remote AgentKey endpoint uses Kimi's native MCP OAuth flow; after install Kimi shows the standard `/reload` hint, then the user signs in with `/mcp-config login plugin-agentkey:agentkey` when Kimi reports that OAuth is required.
@@ -37,7 +37,7 @@ agentkey/
 ├── .kimi-plugin/
 │   └── plugin.json              # Kimi Code manifest with inline HTTP MCP entry (OAuth)
 ├── .agents/plugins/marketplace.json  # Codex marketplace listing this repo as a local-source plugin
-├── .mcp.json                    # Retained compatibility mirror; not referenced by a plugin manifest
+├── .mcp.json                    # Generic compatibility config; not referenced by a plugin manifest
 ├── gemini-extension.json        # Gemini CLI extension — Streamable HTTP + OAuth discovery
 ├── plugin.json                  # Antigravity desktop/CLI plugin marker
 ├── mcp_config.json              # Antigravity remote MCP entry — serverUrl + OAuth discovery
@@ -88,7 +88,7 @@ Releases are driven by [release-please](https://github.com/googleapis/release-pl
 - The MCP server is `type: http` (remote endpoint, no subprocess), so inject the API key by interpolating the userConfig value as `${user_config.AGENTKEY_API_KEY}` in the `Authorization` header — the key name MUST match the `.claude-plugin/plugin.json` `userConfig` key. Do NOT use `${CLAUDE_PLUGIN_OPTION_<KEY>}`: those env vars are only exported to stdio/subprocess servers and hook/monitor commands, and are not interpolated into an http server's headers.
 - Only matters for the Claude Code plugin path; the Skills-CLI path writes MCP config through `npx @agentkey/cli --auth-login`
 - Keep the Claude-specific `https://api.agentkey.app/claude/v1/mcp` route so server-side attribution remains stable.
-- While the root `.mcp.json` is retained, keep it semantically identical to `.claude-plugin/mcp.json`; the plugin manifest must reference only the nested file.
+- The plugin manifest must reference only the nested file. The root `.mcp.json` is independent and continues to use the generic `/v1/mcp` route.
 
 **Changes to `.codex-plugin/mcp.json` (Codex plugin path):**
 - Codex plugin MCP config does NOT support `${user_config.*}` interpolation — a literal `${…}` would be sent as the Authorization header. Auth is MCP OAuth via RFC 9728 discovery: the server's 401 advertises `resource_metadata`, and the rmcp client automatically appends `resource=<server url>` to the authorization request.
@@ -138,7 +138,7 @@ Releases are driven by [release-please](https://github.com/googleapis/release-pl
 - Setup mode in SKILL.md runs `! npx -y @agentkey/cli --auth-login` to authenticate via browser — same command as step 2 of the public install
 - `@agentkey/cli --auth-login` auto-writes MCP configs for 17 agents (canonical list lives in `AGENT_REGISTRY` in `../AgentKey-Server/cli/src/lib/mcp-clients.ts`): Claude Code, Claude Desktop, Cursor, Codex, Gemini CLI, Hermes, OpenCode, Qwen Code, iFlow CLI, Kimi CLI, Kiro CLI, Windsurf, Warp, Amp, Crush, droid, openclaw. The `--only <ids>` flag (used by install.sh's `MCP_TARGETS` and install.ps1's `$McpTargets`) filters this list — its id values MUST match `npx skills add -a` ids, with `claude-desktop` and Hermes as the documented MCP-only exceptions. Goose / kode / kilo still need a manual JSON paste (see SKILL.md's "Fallback" section); when adding more agents server-side, keep `MCP_AUTO_AGENTS` in both install scripts and the cleanup list in both uninstall scripts in sync.
 - `AGENT_REGISTRY.mcpRoute` is the single source of truth for CLI endpoint attribution: `claude-code` and `claude-desktop` → `/claude/v1/mcp`; `cursor` → `/cursor/v1/mcp`; `codex` → `/codex/v1/mcp`; `gemini-cli` → `/gemini/v1/mcp`; `kimi-cli` → `/kimi/v1/mcp`; clients without `mcpRoute` use `/v1/mcp`. Automatic writers and printed manual fallbacks MUST use the same mapping.
-- `.claude-plugin/mcp.json` registers `https://api.agentkey.app/claude/v1/mcp` in Claude Code plugin mode; the API key flows from plugin userConfig into the `Authorization: Bearer ${user_config.AGENTKEY_API_KEY}` header (no stdio binary is launched). Root `.mcp.json` is only a retained compatibility mirror.
+- `.claude-plugin/mcp.json` registers `https://api.agentkey.app/claude/v1/mcp` in Claude Code plugin mode; the API key flows from plugin userConfig into the `Authorization: Bearer ${user_config.AGENTKEY_API_KEY}` header (no stdio binary is launched). Root `.mcp.json` remains an independent generic compatibility config.
 - `.codex-plugin/mcp.json` registers `https://api.agentkey.app/codex/v1/mcp` in Codex plugin mode, authenticated via MCP OAuth (RFC 9728 discovery; no `oauth_resource` — see checklist above)
 - `.cursor-plugin/plugin.json` registers `https://api.agentkey.app/cursor/v1/mcp` inline in Cursor plugin mode, authenticated through Cursor's native MCP OAuth flow
 - `.kimi-plugin/plugin.json` registers `https://api.agentkey.app/kimi/v1/mcp` inline in Kimi Code plugin mode. After reloading, the user starts Kimi's native MCP OAuth flow with `/mcp-config login plugin-agentkey:agentkey`.

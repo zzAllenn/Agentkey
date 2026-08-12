@@ -2,7 +2,7 @@
   "mcpServers": {
     "agentkey": {
       "type": "http",
-      "url": "https://api.agentkey.app/claude/v1/mcp",
+      "url": "https://api.agentkey.app/v1/mcp",
       "headers": {
         "Authorization": "Bearer ${user_config.AGENTKEY_API_KEY}"
       }

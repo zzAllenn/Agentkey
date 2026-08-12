@@ -301,7 +301,7 @@ npx -y @agentkey/cli --auth-login
 <details>
 <summary><b>My agent isn't on the auto-configured list — how do I set it up manually?</b></summary>
 
-`@agentkey/cli --auth-login` auto-configures its supported clients. If no client is detected or a writer fails, the CLI prints a paste-ready fallback for every affected client. It uses these endpoints:
+`@agentkey/cli --auth-login` auto-configures its supported clients. If no client is detected or a writer fails, the CLI prints the matching fallback endpoint and a standard HTTP config example for every affected client. It uses these endpoints:
 
 | Client | MCP endpoint |
 |---|---|
@@ -362,7 +362,7 @@ claude plugin marketplace add /absolute/path/to/agentkey
 claude plugin install agentkey@agentkey
 ```
 
-On enable, Claude Code prompts for `AGENTKEY_API_KEY` (stored in your OS keychain) and injects it into the plugin's `.claude-plugin/mcp.json` via `${user_config.AGENTKEY_API_KEY}`. Reload a local checkout with `claude plugin update agentkey` after edits. Day-to-day skill iteration is still fastest via the skills-CLI path; the plugin path is the one-step option for Claude Code users. The root `.mcp.json` is temporarily retained as an identical compatibility copy but is no longer referenced by the Claude plugin manifest.
+On enable, Claude Code prompts for `AGENTKEY_API_KEY` (stored in your OS keychain) and injects it into the plugin's `.claude-plugin/mcp.json` via `${user_config.AGENTKEY_API_KEY}`. Reload a local checkout with `claude plugin update agentkey` after edits. Day-to-day skill iteration is still fastest via the skills-CLI path; the plugin path is the one-step option for Claude Code users. The root `.mcp.json` remains an independent generic `/v1/mcp` compatibility config and is not referenced by the Claude plugin manifest.
 
 **Codex plugin mode** — install from the marketplace bundled in this repo. Auth is OAuth (browser sign-in on install), so there's **no API key to paste and no second `@agentkey/cli` step**:
 
@@ -450,7 +450,7 @@ agentkey/
 ├── .kimi-plugin/
 │   └── plugin.json              # Kimi manifest with inline MCP OAuth entry
 ├── .agents/plugins/marketplace.json  # Codex marketplace (this repo is its own marketplace)
-├── .mcp.json                    # Retained compatibility mirror; not referenced by a plugin manifest
+├── .mcp.json                    # Generic compatibility config; not referenced by a plugin manifest
 ├── gemini-extension.json        # Gemini CLI extension manifest (MCP OAuth + skills)
 ├── plugin.json                  # Antigravity desktop/CLI plugin manifest
 ├── mcp_config.json              # Antigravity remote MCP entry (serverUrl + OAuth)

@@ -301,7 +301,7 @@ npx -y @agentkey/cli --auth-login
 <details>
 <summary><b>我的 Agent 没被自动配置，怎么手动设置？</b></summary>
 
-`@agentkey/cli --auth-login` 会自动配置它支持的 client。如果没有检测到 client，或者某个配置写入失败，CLI 会为每个受影响的 client 打印可直接粘贴的 fallback 配置。地址映射如下：
+`@agentkey/cli --auth-login` 会自动配置它支持的 client。如果没有检测到 client，或者某个配置写入失败，CLI 会为每个受影响的 client 打印匹配的 fallback 地址和标准 HTTP 配置示例。地址映射如下：
 
 | Client | MCP 地址 |
 |---|---|
@@ -362,7 +362,7 @@ claude plugin marketplace add /absolute/path/to/agentkey
 claude plugin install agentkey@agentkey
 ```
 
-启用时 Claude Code 会提示填 `AGENTKEY_API_KEY`（存进系统钥匙串），并通过 `${user_config.AGENTKEY_API_KEY}` 注入插件的 `.claude-plugin/mcp.json`。改了本地 checkout 后用 `claude plugin update agentkey` 重新加载。日常 Skill 迭代仍是 skills CLI 最快；插件路径是给 Claude Code 用户的一步到位选项。根目录 `.mcp.json` 暂时作为内容完全相同的兼容副本保留，但 Claude 插件清单已不再引用它。
+启用时 Claude Code 会提示填 `AGENTKEY_API_KEY`（存进系统钥匙串），并通过 `${user_config.AGENTKEY_API_KEY}` 注入插件的 `.claude-plugin/mcp.json`。改了本地 checkout 后用 `claude plugin update agentkey` 重新加载。日常 Skill 迭代仍是 skills CLI 最快；插件路径是给 Claude Code 用户的一步到位选项。根目录 `.mcp.json` 是独立的通用 `/v1/mcp` 兼容配置，Claude 插件清单不引用它。
 
 **Codex 插件模式** —— 从本仓库自带的 marketplace 安装。认证走 OAuth（安装时浏览器登录），**不用粘贴 API Key，也不需要再单独跑 `@agentkey/cli`**：
 
@@ -450,7 +450,7 @@ agentkey/
 ├── .kimi-plugin/
 │   └── plugin.json              # Kimi 清单，内联 MCP OAuth 配置
 ├── .agents/plugins/marketplace.json  # Codex marketplace（本仓库即自己的 marketplace）
-├── .mcp.json                    # 暂留的兼容镜像；插件清单不再引用
+├── .mcp.json                    # 独立的通用兼容配置；插件清单不引用
 ├── gemini-extension.json        # Gemini CLI 扩展清单（MCP OAuth + skills）
 ├── plugin.json                  # Antigravity 桌面端/CLI 插件清单
 ├── mcp_config.json              # Antigravity 远程 MCP 配置（serverUrl + OAuth）
