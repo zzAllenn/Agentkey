@@ -35,7 +35,7 @@ with open(sys.argv[1], encoding="utf-8") as handle:
 assert config == {
     "mcpServers": {
         "agentkey": {
-            "serverUrl": "https://api.agentkey.app/v1/mcp",
+            "serverUrl": "https://api.agentkey.app/antigravity/v1/mcp",
         }
     }
 }
@@ -73,7 +73,7 @@ assert "\nname: agentkey\n" in f"\n{frontmatter}\n"
 PY
 }
 
-@test "Antigravity endpoint stays synchronized with every plugin client" {
+@test "Every bundled plugin uses its client-specific routed endpoint" {
     python3 - "$REPO_ROOT" <<'PY'
 import json
 import os
@@ -81,7 +81,7 @@ import sys
 
 root = sys.argv[1]
 configs = {
-    "claude": (".mcp.json", "url"),
+    "claude": (".claude-plugin/mcp.json", "url"),
     "codex": (".codex-plugin/mcp.json", "url"),
     "cursor": (".cursor-plugin/plugin.json", "url"),
     "kimi": (".kimi-plugin/plugin.json", "url"),
@@ -93,6 +93,14 @@ for client, (relative_path, field) in configs.items():
     with open(os.path.join(root, relative_path), encoding="utf-8") as handle:
         endpoints[client] = json.load(handle)["mcpServers"]["agentkey"][field]
 
-assert set(endpoints.values()) == {"https://api.agentkey.app/v1/mcp"}, endpoints
+assert endpoints == {
+    "claude": "https://api.agentkey.app/claude/v1/mcp",
+    "codex": "https://api.agentkey.app/codex/v1/mcp",
+    "cursor": "https://api.agentkey.app/cursor/v1/mcp",
+    "kimi": "https://api.agentkey.app/kimi/v1/mcp",
+    "gemini": "https://api.agentkey.app/gemini/v1/mcp",
+    "antigravity": "https://api.agentkey.app/antigravity/v1/mcp",
+}, endpoints
+
 PY
 }

@@ -1,6 +1,7 @@
 # AgentKey — Setup details
 
-Two ways to connect the hosted MCP server (`https://api.agentkey.app/v1/mcp`).
+Two ways to connect the hosted MCP server. Use the client-attributed endpoint
+when one is listed below; otherwise use `https://api.agentkey.app/v1/mcp`.
 **Prefer OAuth.** Use the API-key fallback only when the client can't do MCP
 OAuth, or the OAuth flow fails.
 
@@ -52,12 +53,15 @@ If no AgentKey server entry exists, add the server with **no API key** and let
 the client run its own browser OAuth. The exact step depends on the client;
 these are examples, not the only supported clients:
 
-- **Claude Code:** `claude mcp add --transport http agentkey https://api.agentkey.app/v1/mcp`,
+- **Claude Code:** `claude mcp add --transport http agentkey https://api.agentkey.app/claude/v1/mcp`,
   then `/mcp` → agentkey → **Authenticate**.
-- **Cursor / Claude Desktop:** add a remote MCP server in settings with URL
-  `https://api.agentkey.app/v1/mcp` and no auth header; the app prompts to sign
-  in on first use.
-- **Another client:** add the same URL as an HTTP MCP server with no
+- **Claude Desktop:** add `https://api.agentkey.app/claude/v1/mcp` as a remote
+  MCP server in settings with no auth header.
+- **Cursor:** use `https://api.agentkey.app/cursor/v1/mcp`.
+- **Codex:** use `https://api.agentkey.app/codex/v1/mcp`.
+- **Gemini CLI:** use `https://api.agentkey.app/gemini/v1/mcp`.
+- **Kimi CLI:** use `https://api.agentkey.app/kimi/v1/mcp`.
+- **Another client:** add `https://api.agentkey.app/v1/mcp` as an HTTP MCP server with no
   `Authorization` header. If the client supports MCP OAuth it prompts to
   authorize on first connect; if it doesn't, use the API-key fallback below.
 
@@ -72,7 +76,11 @@ An extension/plugin server that merely starts as disconnected is not a reason
 to fall back; complete its client-specific authentication flow first.
 
 1. Grab a key at https://console.agentkey.app/
-2. Paste this into the agent's MCP config (path varies per agent):
+2. Choose the same client-specific URL listed above. If the client is not
+   listed, use the generic `https://api.agentkey.app/v1/mcp` endpoint.
+3. Paste this into the agent's MCP config (path varies per agent), replacing
+   the generic `url` value with the selected client-specific URL when one is
+   listed above:
    ```json
    {
      "mcpServers": {
@@ -84,7 +92,7 @@ to fall back; complete its client-specific authentication flow first.
      }
    }
    ```
-3. Restart the agent.
+4. Restart the agent.
 
 If you don't know the user's agent, ask which one they're using (Claude Code,
 Claude Desktop, Cursor, Codex, …).

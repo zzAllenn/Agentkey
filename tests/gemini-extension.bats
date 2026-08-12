@@ -17,7 +17,7 @@ assert manifest["name"] == "agentkey"
 assert manifest["description"]
 assert manifest["mcpServers"] == {
     "agentkey": {
-        "httpUrl": "https://api.agentkey.app/v1/mcp",
+        "httpUrl": "https://api.agentkey.app/gemini/v1/mcp",
         "oauth": {
             "enabled": True,
         },
